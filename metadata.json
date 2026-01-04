@@ -1,0 +1,9 @@
+
+{
+  "name": "Myers Estimate Generator",
+  "description": "Enterprise-grade pre-construction terminal featuring CSI MasterFormat logic, real-time market grounding, and automated takeoff pipelines.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
