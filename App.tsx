@@ -9,10 +9,9 @@ import {
   ProjectData, ProjectType, EstimateResult, UserPlan, 
   ProjectScale, ProjectTimeline, SessionData
 } from './types';
-import { generateFullEstimate } from './services/geminiService';
-import { initiateRetainerPayment, initiateSubscription } from './services/paymentService';
-import { dbService } from './services/dbService';
-
+import { generateFullEstimate } from './geminiService';import { initiateRetainerPayment, initiateSubscription } from './services/paymentService';
+import { initiateRetainerPayment, initiateSubscription } from './paymentService';
+import { dbService } from './dbService';
 const TRADES = ['GC', 'Electrical', 'HVAC', 'Plumbing', 'Earthworks', 'Finishes'] as const;
 
 const MarketTicker = () => (
