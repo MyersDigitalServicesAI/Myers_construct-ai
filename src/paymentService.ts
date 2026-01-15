@@ -1,6 +1,6 @@
+import { loadStripe } from "@stripe/stripe-js";
 
-import { loadStripe } from "https://esm.sh/@stripe/stripe-js@^3.3.0";
-
+// Replace with your actual Stripe publishable key
 const STRIPE_PUBLISHABLE_KEY = "pk_live_placeholder"; 
 
 export async function initiateSubscription(planName: string, price: number) {
@@ -8,10 +8,13 @@ export async function initiateSubscription(planName: string, price: number) {
   
   if (!stripe) throw new Error("Stripe SDK initialization failed.");
 
-  // PRODUCTION NOTE: In a live environment, this would call your backend (Node/Go/Python)
-  // to create a Stripe Checkout Session for a recurring subscription.
+  // PRODUCTION NOTE: In a live environment, this calls your backend to create a Checkout Session.
+  // The backend would use the Stripe Secret Key to create the session.
+  // Then we redirect to the checkout page.
+  
   console.log(`Provisioning ${planName} subscription at $${price}/mo`);
   
+  // Simulation of backend call
   return new Promise((resolve) => {
     // Simulate payment gateway processing
     setTimeout(() => {

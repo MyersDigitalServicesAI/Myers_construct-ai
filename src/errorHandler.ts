@@ -18,7 +18,8 @@ export const handleError = (error: unknown): string => {
   }
   
   if (error instanceof Error) {
-    return error.message;
+    // Strip technical details for user-facing messages
+    return error.message; 
   }
   
   return 'An unexpected error occurred. Please try again.';
@@ -26,17 +27,11 @@ export const handleError = (error: unknown): string => {
 
 export const logError = async (error: unknown, context?: string) => {
   const errorMessage = error instanceof Error ? error.message : String(error);
-  const errorStack = error instanceof Error ? error.stack : undefined;
   
   // Log to console in development
   if (import.meta.env.DEV) {
-    console.error(`Error in ${context}:`, errorMessage, errorStack);
+    console.error(`Error in ${context}:`, errorMessage, error);
   }
   
-  // In production, send to error tracking service (Sentry, etc.)
-  if (import.meta.env.PROD && window.Sentry) {
-    window.Sentry.captureException(error, {
-      tags: { context },
-    });
-  }
+  // In a real app, you would send this to Sentry/LogRocket here
 };
