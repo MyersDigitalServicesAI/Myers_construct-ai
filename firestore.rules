@@ -1,0 +1,143 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function: Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function: Get user data (be careful with cost in production loops)
+    function getUserData(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data;
+    }
+
+    // Helper function: Check if user belongs to organization
+    function belongsToOrg(orgId) {
+      return getUserData(request.auth.uid).organizationId == orgId;
+    }
+
+    // Helper function: Check user role
+    function hasRole(orgId, roles) {
+      let userDoc = getUserData(request.auth.uid);
+      return userDoc.organizationId == orgId && userDoc.role in roles;
+    }
+    
+    // Helper function: Check if user has a specific role from a list (simplified)
+    function userHasRole(userId, allowedRoles) {
+      return getUserData(userId).role in allowedRoles;
+    }
+
+    // Organizations
+    match /organizations/{orgId} {
+      allow read: if isAuthenticated() && belongsToOrg(orgId);
+      // Only admins can update organization settings
+      allow update: if isAuthenticated() && hasRole(orgId, ['admin']);
+      // Creation usually happens via a trusted function or specific flow
+      allow create: if isAuthenticated(); 
+    }
+
+    // Users
+    match /users/{userId} {
+      // Users can read their own profile
+      // Org admins/managers can read profiles of users in their org
+      allow read: if request.auth.uid == userId ||
+        (isAuthenticated() &&
+          belongsToOrg(resource.data.organizationId) && // Use resource.data for existing doc
+          hasRole(resource.data.organizationId, ['admin', 'manager']));
+      
+      // Users can update their own basic info, but not critical fields like role/orgId
+      // Admins can update any user in their org
+      allow update: if (request.auth.uid == userId && 
+                        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'organizationId'])) ||
+                    (isAuthenticated() && hasRole(resource.data.organizationId, ['admin']));
+      
+      // Only the user themselves or a system admin can delete (rare)
+      allow delete: if request.auth.uid == userId;
+      
+      // Creation is usually handled by auth triggers, but allowing self-creation for initial setup
+      allow create: if request.auth.uid == userId;
+    }
+
+    // Brand Voice Models
+    match /brand_voice_models/{brandVoiceId} {
+      allow read: if isAuthenticated() && belongsToOrg(resource.data.organizationId);
+      allow create: if isAuthenticated() && belongsToOrg(request.resource.data.organizationId);
+      allow update, delete: if isAuthenticated() && hasRole(resource.data.organizationId, ['admin', 'manager']);
+    }
+
+    // Interactions
+    match /interactions/{interactionId} {
+      // Interactions belong to a user OR an organization
+      // For now, assuming user ownership as primary key
+      allow read, write: if isAuthenticated() && 
+        (resource == null || resource.data.userId == request.auth.uid || request.resource.data.userId == request.auth.uid);
+    }
+
+    // AI Studio Access Rules
+    match /aiStudio/{doc} {
+      allow read: if isAuthenticated() && userHasRole(request.auth.uid, ['admin', 'manager', 'agent']);
+    }
+
+    match /aiStudio/premium/{doc} {
+      allow read: if isAuthenticated() && userHasRole(request.auth.uid, ['admin']);
+    }
+
+    // --- Myers Construct AI Application Collections ---
+
+    // Estimates: Private to the authenticated owner
+    match /estimates/{estimateId} {
+      allow read, write: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid || request.resource.data.userId == request.auth.uid);
+    }
+
+    // Leads: Private to the authenticated owner
+    match /leads/{leadId} {
+      allow read, write: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid || request.resource.data.userId == request.auth.uid);
+    }
+
+    // Waitlist: Public sign-up (Essential for Landing Page)
+    match /waitlist/{entryId} {
+      allow create: if true;
+      allow read: if isAuthenticated();
+    }
+
+    // Appointments: Calendar sync
+    match /appointments/{appointmentId} {
+      allow read, write: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid || request.resource.data.userId == request.auth.uid);
+    }
+
+    // Agent & Calendar Configs
+    match /agent_configs/{id} {
+      allow read, write: if isAuthenticated() && request.auth.uid == id;
+    }
+    match /calendar_configs/{id} {
+      allow read, write: if isAuthenticated() && request.auth.uid == id;
+    }
+
+    // --- External Components (Stripe, etc.) ---
+    
+    // Stripe Customers & Subscriptions (Strictly User Owned)
+    match /customers/{uid} {
+      allow read, write: if request.auth.uid == uid;
+      
+      match /checkout_sessions/{id} {
+        allow read, write: if request.auth.uid == uid;
+      }
+      match /subscriptions/{id} {
+        allow read: if request.auth.uid == uid;
+      }
+      match /payments/{id} {
+        allow read: if request.auth.uid == uid;
+      }
+    }
+    
+    // Products and prices (Publicly readable for authenticated users)
+    match /products/{id} {
+      allow read: if isAuthenticated();
+      
+      match /prices/{id} {
+        allow read: if isAuthenticated();
+      }
+    }
+  }
+}

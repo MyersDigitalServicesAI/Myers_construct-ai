@@ -15,12 +15,12 @@ const app = initializeApp(firebaseConfig);
 
 export const db = getFirestore(app);
 
-// Enable Offline Persistence
-enableIndexedDbPersistence(db).catch((err) => {
+// Enable Offline Persistence with optimized settings
+enableIndexedDbPersistence(db, { forceOwnership: true }).catch((err) => {
   if (err.code == 'failed-precondition') {
-      console.warn("Firestore persistence failed: Multiple tabs open.");
+    console.warn("Firestore persistence failed: Multiple tabs open.");
   } else if (err.code == 'unimplemented') {
-      console.warn("Firestore persistence not supported by this browser.");
+    console.warn("Firestore persistence not supported by this browser.");
   }
 });
 

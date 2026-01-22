@@ -31,7 +31,8 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,pdf}'],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB for high-res plans
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/firestore\.googleapis\.com\/.*$/,
@@ -39,8 +40,11 @@ export default defineConfig({
             options: {
               cacheName: 'firestore-data',
               expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 // 1 day
+                maxEntries: 500,
+                maxAgeSeconds: 60 * 60 * 24 * 7 // 1 week
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
               }
             }
           }

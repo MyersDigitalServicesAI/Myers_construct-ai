@@ -1,5 +1,10 @@
 {
-  "name": "myers-estimate-generator",
+  "name": "Myers Construct AI",
+  "description": "Enterprise-grade pre-construction terminal featuring CSI MasterFormat logic, real-time market grounding, and automated takeoff pipelines.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,18 +16,30 @@
   "dependencies": {
     "@google/genai": "^1.34.0",
     "@sentry/react": "^10.34.0",
+    "@stripe/react-stripe-js": "^5.4.1",
     "@stripe/stripe-js": "^8.6.1",
     "firebase": "^12.7.0",
+    "firebase-admin": "^13.6.0",
+    "jspdf": "^4.0.0",
+    "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.562.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "serpapi": "^2.2.1",
+    "stripe": "^20.1.2",
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "^22.14.0",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.0.0",
+    "autoprefixer": "^10.4.23",
+    "dotenv": "^17.2.3",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
     "vite-plugin-pwa": "^1.2.0"
