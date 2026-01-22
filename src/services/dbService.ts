@@ -362,7 +362,7 @@ export const dbService = {
   },
 
   // Waitlist Logic
-  submitWaitlist: async (data: { name: string; email: string; phone: string; trade: string }) => {
+  submitWaitlist: async (data: { name: string; email: string; phone: string; trade: string; company: string }) => {
     try {
       await addDoc(collection(db, COLLECTIONS.WAITLIST), {
         ...data,

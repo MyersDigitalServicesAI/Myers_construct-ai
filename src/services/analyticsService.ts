@@ -13,7 +13,8 @@ export type AnalyticsEventName =
     | 'page_view'
     | 'lead_captured'
     | 'lead_qualified_hot'
-    | 'appointment_autobooked';
+    | 'appointment_autobooked'
+    | 'waitlist_checkout_initiated';
 
 export interface AnalyticsEvent {
     eventName: AnalyticsEventName;

@@ -8,6 +8,7 @@ interface WaitlistEntry {
     email: string;
     phone: string;
     trade: string;
+    company: string;
     createdAt: string;
     status: string;
 }
@@ -29,6 +30,7 @@ export const WaitlistDashboard = () => {
     const filteredEntries = entries.filter(e =>
         e.name.toLowerCase().includes(search.toLowerCase()) ||
         e.trade.toLowerCase().includes(search.toLowerCase()) ||
+        (e.company && e.company.toLowerCase().includes(search.toLowerCase())) ||
         e.email.toLowerCase().includes(search.toLowerCase())
     );
 
@@ -98,10 +100,12 @@ export const WaitlistDashboard = () => {
                                         <Briefcase size={24} />
                                         <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-black rounded-full" />
                                     </div>
-                                    <div className="space-y-1">
-                                        <h4 className="text-lg font-black uppercase italic tracking-tighter text-white group-hover:text-orange-500 transition-colors">{entry.name}</h4>
-                                        <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-2">
-                                            {entry.trade} <span className="w-1 h-1 bg-neutral-800 rounded-full" /> {new Date(entry.createdAt).toLocaleDateString()}
+                                    <div className="space-y-1 text-center md:text-left">
+                                        <h4 className="text-lg font-black uppercase italic tracking-tighter text-white group-hover:text-orange-500 transition-colors">
+                                            {entry.name}
+                                        </h4>
+                                        <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest flex flex-wrap items-center justify-center md:justify-start gap-2">
+                                            {entry.company || 'NO COMPANY'} <span className="w-1 h-1 bg-neutral-800 rounded-full hidden md:inline-block" /> {entry.trade} <span className="w-1 h-1 bg-neutral-800 rounded-full" /> {new Date(entry.createdAt).toLocaleDateString()}
                                         </p>
                                     </div>
                                 </div>

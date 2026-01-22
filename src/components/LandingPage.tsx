@@ -13,7 +13,7 @@ interface LandingPageProps {
 export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
     const [scrolled, setScrolled] = useState(false);
     const [openFaq, setOpenFaq] = useState<number | null>(null);
-    const [form, setForm] = useState({ name: '', email: '', phone: '', trade: '' });
+    const [form, setForm] = useState({ name: '', email: '', phone: '', trade: '', company: '' });
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -32,10 +32,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         if (!form.email || !form.name) return;
         setStatus('loading');
         try {
+            // First save to Firestore waitlist
             await dbService.submitWaitlist(form);
-            setStatus('success');
-        } catch (e) {
+
+            // Then initiate Stripe checkout for the "Founder Slot"
+            const { createWaitlistCheckout } = await import('../services/paymentService');
+            await createWaitlistCheckout(form);
+
+            // Redirect happens in createWaitlistCheckout, if we get here it failed or was aborted
+            setStatus('idle');
+        } catch (e: any) {
+            console.error("Waitlist Error:", e);
             setStatus('error');
+            alert(e.message || "Could not initiate checkout. Please try again.");
         }
     };
 
@@ -143,10 +152,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                             ) : (
                                 <>
                                     <div className="mb-8 space-y-2">
-                                        <h3 className="text-2xl font-black uppercase italic tracking-tighter text-white">Early Access</h3>
+                                        <h3 className="text-2xl font-black uppercase italic tracking-tighter text-white">Join the Waitlist</h3>
                                         <div className="flex items-center gap-2 text-orange-500 font-bold text-xs uppercase tracking-widest">
-                                            <Users size={12} />
-                                            <span>Limited to 30 Contractors</span>
+                                            <Zap size={12} fill="currentColor" />
+                                            <span>Get a <span className="underline underline-offset-4">10% discount</span> on launch</span>
                                         </div>
                                     </div>
 
@@ -167,6 +176,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                                                 placeholder="TRADE (e.g. ROOFING)"
                                                 value={form.trade}
                                                 onChange={e => setForm({ ...form, trade: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-sm font-bold text-white focus:border-orange-500 focus:bg-white/10 outline-none transition-all placeholder:text-neutral-600"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <input
+                                                type="text"
+                                                placeholder="COMPANY NAME"
+                                                value={form.company}
+                                                onChange={e => setForm({ ...form, company: e.target.value })}
                                                 className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-sm font-bold text-white focus:border-orange-500 focus:bg-white/10 outline-none transition-all placeholder:text-neutral-600"
                                                 required
                                             />
@@ -199,8 +218,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                                         >
                                             {status === 'loading' ? <Loader2 size={18} className="animate-spin" /> : <>Claim Spot <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" /></>}
                                         </button>
-                                        <p className="text-center text-[10px] font-bold text-neutral-600 uppercase tracking-widest mt-4">
-                                            $250/mo Founder Rate • Cancel Anytime
+                                        <p className="text-center text-[10px] font-bold text-neutral-600 uppercase tracking-widest mt-4 italic">
+                                            Joining the waitlist lock in 10% lifetime discount
                                         </p>
                                     </form>
                                 </>

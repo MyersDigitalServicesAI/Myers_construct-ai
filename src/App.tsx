@@ -63,7 +63,7 @@ const RestrictedProposalOverlay = ({ onSubscribe }: { onSubscribe: (plan: UserPl
 const App = () => {
   const [session, setSession] = useState<SessionData | null>(null);
   const [showAuth, setShowAuth] = useState(false);
-  const [view, setView] = useState<'dash' | 'intake' | 'result' | 'proc' | 'agent' | 'leads' | 'calendar' | 'pricing' | 'waitlist'>('dash');
+  const [view, setView] = useState<'landing' | 'dash' | 'intake' | 'result' | 'proc' | 'agent' | 'leads' | 'calendar' | 'pricing' | 'waitlist'>('landing');
   const [history, setHistory] = useState<any[]>([]);
   const [project, setProject] = useState<ProjectData>({
     scope: '',
@@ -92,11 +92,12 @@ const App = () => {
     const fetchData = async () => {
       const s = await dbService.getSession();
       const { items } = await dbService.getHistory();
-      setSession(s);
-      setHistory(items);
-
-      // Onboarding logic based on session
       if (s) {
+        setSession(s);
+        setHistory(items);
+        // If logged in, go to dashboard
+        if (view === 'landing') setView('dash');
+
         const visited = localStorage.getItem(`myers_visited_${s.company}`);
         if (!visited) {
           setShowOnboarding(true);
@@ -117,8 +118,14 @@ const App = () => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('return_from_checkout') === 'true') {
       const sessionId = urlParams.get('session_id');
-      // console.log("Returned successfully from Stripe. Session:", sessionId);
-      alert("Subscription Provisioned Successfully!");
+      const isWaitlist = urlParams.get('is_waitlist') === 'true';
+
+      if (isWaitlist) {
+        alert("Welcome Founder! Your slot is secured. Check your email for onboarding instructions.");
+      } else {
+        alert("Subscription Provisioned Successfully!");
+      }
+
       window.history.replaceState({}, document.title, "/");
       fetchData();
     }

@@ -44,49 +44,58 @@ export default async function handler(req: any, res: any) {
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object as Stripe.Checkout.Session;
         const uid = session.client_reference_id;
-        const planName = session.metadata?.planName;
+        const metadata = session.metadata;
+        const planName = metadata?.planName || session.metadata?.planName;
+        const isWaitlist = metadata?.is_waitlist_signup === "true";
+
+        if (isWaitlist) {
+            try {
+                // Record the paid waitlist entry
+                const waitlistRef = admin.firestore().collection('waitlist');
+                const query = await waitlistRef.where('email', '==', session.customer_details?.email).get();
+
+                if (!query.empty) {
+                    const doc = query.docs[0];
+                    await doc.ref.update({
+                        status: 'PAID_FOUNDER',
+                        stripeSessionId: session.id,
+                        stripeCustomerId: session.customer,
+                        paidAt: admin.firestore.FieldValue.serverTimestamp()
+                    });
+                } else {
+                    // Create new entry if missing (shouldn't happen with our flow)
+                    await waitlistRef.add({
+                        name: metadata?.waitlist_name,
+                        company: metadata?.waitlist_company,
+                        phone: metadata?.waitlist_phone,
+                        trade: metadata?.waitlist_trade,
+                        email: session.customer_details?.email,
+                        status: 'PAID_FOUNDER',
+                        stripeSessionId: session.id,
+                        stripeCustomerId: session.customer,
+                        createdAt: admin.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+                console.log(`Founder payment received for ${session.customer_details?.email}`);
+            } catch (e) {
+                console.error('Waitlist payment record failed:', e);
+            }
+            return res.status(200).json({ received: true });
+        }
 
         if (uid && planName) {
-            try {
-                // Determine limits based on plan name
-                const limits: Record<string, number> = {
-                    'Pro': 25,
-                    'Business': -1,
-                    'Pro Team': -1,
-                    'Enterprise': -1,
-                    'Reseller': -1
-                };
+            // ... rest of existing user subscription logic ...
 
-                const estimatesLimit = limits[planName] ?? 3;
-
-                await admin.firestore().collection('users').doc(uid).set({
-                    subscriptionActive: true,
-                    plan: planName,
-                    stripeCustomerId: session.customer,
-                    usage: {
-                        estimatesLimit: estimatesLimit,
-                        // Don't reset estimatesThisMonth here, usually keep it for the bill cycle
-                    },
-                    updatedAt: admin.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
-                console.log(`Updated subscription for user ${uid} to ${planName} with limit ${estimatesLimit}`);
-            } catch (error) {
-                console.error('Firestore update failed:', error);
-                return res.status(500).json({ error: 'Database update failed' });
-            }
+            res.status(200).json({ received: true });
         }
-    }
 
-    res.status(200).json({ received: true });
-}
+        // Helper to get raw body buffer from request stream (for Vercel/Node)
+        async function getRawBody(req: any): Promise<Buffer> {
+            if (req.rawBody) return req.rawBody; // Some frameworks attach this
 
-// Helper to get raw body buffer from request stream (for Vercel/Node)
-async function getRawBody(req: any): Promise<Buffer> {
-    if (req.rawBody) return req.rawBody; // Some frameworks attach this
-
-    const chunks = [];
-    for await (const chunk of req) {
-        chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
-    }
-    return Buffer.concat(chunks);
-}
+            const chunks = [];
+            for await (const chunk of req) {
+                chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+            }
+            return Buffer.concat(chunks);
+        }

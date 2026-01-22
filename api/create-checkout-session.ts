@@ -16,16 +16,23 @@ export default async function handler(req: Request) {
 
     try {
         const body = await req.json();
-        const { planName, userId, priceId } = body;
+        const { planName, userId, priceId, customerEmail, metadata } = body;
 
-        if (!planName || !userId) {
-            return new Response(JSON.stringify({ message: "Missing planName or userId" }), { status: 400 });
+        if (!planName && !priceId) {
+            return new Response(JSON.stringify({ message: "Missing plan identity" }), { status: 400 });
+        }
+
+        const isWaitlist = metadata?.is_waitlist_signup === "true";
+
+        if (!userId && !isWaitlist) {
+            return new Response(JSON.stringify({ message: "Missing userId" }), { status: 400 });
         }
 
         // Server-side pricing source of truth (Prevent Client Manipulation)
         const PRICING_TABLE: Record<string, number> = {
             'Pro': 149,
             'Business': 299,
+            'Founder': 250, // Special price for waitlist
             'Pro Team': 449,
             'Enterprise': 1049,
             'Reseller': 549
@@ -54,18 +61,20 @@ export default async function handler(req: Request) {
 
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
-            client_reference_id: userId,
+            client_reference_id: userId || `waitlist_${Date.now()}`,
+            customer_email: customerEmail,
             metadata: {
+                ...metadata,
                 planName: planName
             },
             line_items: [lineItem],
             mode: 'subscription',
             automatic_tax: { enabled: true },
-            ui_mode: 'embedded',
-            return_url: `${req.headers.get('origin')}/?return_from_checkout=true&session_id={CHECKOUT_SESSION_ID}`,
+            success_url: `${req.headers.get('origin')}/?return_from_checkout=true&session_id={CHECKOUT_SESSION_ID}${isWaitlist ? '&is_waitlist=true' : ''}`,
+            cancel_url: `${req.headers.get('origin')}/`,
         });
 
-        return new Response(JSON.stringify({ clientSecret: session.client_secret }), {
+        return new Response(JSON.stringify({ id: session.id }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' }
         });
