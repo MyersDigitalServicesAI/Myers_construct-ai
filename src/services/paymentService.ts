@@ -61,9 +61,18 @@ export async function createWaitlistCheckout(data: { name: string; email: string
   const stripe = await loadStripe(key) as any;
   if (!stripe) throw new Error("Stripe SDK failed.");
 
-  analyticsService.logEvent('waitlist_checkout_initiated', undefined, UserPlan.BUSINESS, {
+  // Check if founder slots are still available
+  const { getFounderSlotsRemaining } = await import('../config/planDefinitions');
+  const slotsRemaining = await getFounderSlotsRemaining();
+  
+  if (slotsRemaining <= 0) {
+    throw new Error('All 30 Founder slots have been claimed. Please check back for regular pricing.');
+  }
+
+  analyticsService.logEvent('waitlist_checkout_initiated', undefined, UserPlan.FOUNDER, {
     email: data.email,
-    company: data.company
+    company: data.company,
+    slotsRemaining
   });
 
   try {
@@ -73,7 +82,7 @@ export async function createWaitlistCheckout(data: { name: string; email: string
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        priceId: PLANS[UserPlan.BUSINESS].priceId, // Founder slots are Business plan
+        priceId: PLANS[UserPlan.FOUNDER].priceId, // Use dedicated Founder plan
         planName: "Founder",
         customerEmail: data.email,
         metadata: {

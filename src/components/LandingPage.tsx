@@ -16,11 +16,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
     const [form, setForm] = useState({ name: '', email: '', phone: '', trade: '', company: '' });
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [founderSlotsRemaining, setFounderSlotsRemaining] = useState<number | null>(null);
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 50);
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    // Load founder slots remaining on mount
+    useEffect(() => {
+        const loadSlots = async () => {
+            try {
+                const { getFounderSlotsRemaining } = await import('../config/planDefinitions');
+                const remaining = await getFounderSlotsRemaining();
+                setFounderSlotsRemaining(remaining);
+            } catch (error) {
+                console.error('Failed to load founder slots:', error);
+                setFounderSlotsRemaining(30); // Default to showing available
+            }
+        };
+        loadSlots();
     }, []);
 
     const toggleFaq = (index: number) => {
@@ -111,7 +127,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                             </span>
-                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-300">Founders List: <span className="text-white">Open</span></span>
+                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-300">
+                                Founders List: <span className="text-white">{founderSlotsRemaining === 0 ? 'Closed' : founderSlotsRemaining ? `${founderSlotsRemaining} Left` : 'Open'}</span>
+                            </span>
                         </div>
 
                         {/* Headline */}
@@ -330,6 +348,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                                 <p className="text-xl text-neutral-400 font-medium max-w-2xl mx-auto">
                                     We are opening 30 spots for early adopters to lock in lifetime pricing.
                                 </p>
+                                {founderSlotsRemaining !== null && (
+                                    <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/30 px-4 py-2 rounded-full">
+                                        <span className="relative flex h-2 w-2">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+                                        </span>
+                                        <span className="text-xs font-bold text-orange-400 uppercase tracking-wider">
+                                            {founderSlotsRemaining > 0 ? `${founderSlotsRemaining} of 30 Spots Remaining` : 'All Spots Claimed'}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="flex flex-col items-center gap-2">
@@ -340,9 +369,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                             <div className="pt-8">
                                 <button
                                     onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                                    className="bg-white text-black hover:bg-neutral-200 px-12 py-6 rounded-xl font-black text-sm uppercase tracking-[0.2em] transition-all hover:scale-105 shadow-[0_0_40px_rgba(255,255,255,0.1)]"
+                                    disabled={founderSlotsRemaining === 0}
+                                    className={`px-12 py-6 rounded-xl font-black text-sm uppercase tracking-[0.2em] transition-all shadow-[0_0_40px_rgba(255,255,255,0.1)] ${
+                                        founderSlotsRemaining === 0 
+                                            ? 'bg-neutral-700 text-neutral-500 cursor-not-allowed' 
+                                            : 'bg-white text-black hover:bg-neutral-200 hover:scale-105'
+                                    }`}
                                 >
-                                    Claim One of 30 Spots
+                                    {founderSlotsRemaining === 0 ? 'All Spots Claimed' : 'Claim One of 30 Spots'}
                                 </button>
                             </div>
                         </div>

@@ -5,7 +5,8 @@ export enum UserPlan {
     BUSINESS = "Business",
     PRO_TEAM = "Pro Team",
     ENTERPRISE = "Enterprise",
-    RESELLER = "Reseller"
+    RESELLER = "Reseller",
+    FOUNDER = "Founder"
 }
 
 export enum ProjectType {
