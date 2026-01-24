@@ -18,6 +18,7 @@
     "@sentry/react": "^10.34.0",
     "@stripe/react-stripe-js": "^5.4.1",
     "@stripe/stripe-js": "^8.6.1",
+    "@vercel/analytics": "^1.6.1",
     "firebase": "^12.7.0",
     "firebase-admin": "^13.6.0",
     "jspdf": "^4.0.0",

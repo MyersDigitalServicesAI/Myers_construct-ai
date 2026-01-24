@@ -23,6 +23,7 @@ import { Login } from './components/Login';
 import { DigitalTwinViewer } from './components/DigitalTwinViewer';
 import { OnboardingTour } from './components/OnboardingTour';
 import { Eye, Smartphone } from 'lucide-react';
+import { Analytics } from '@vercel/analytics/react';
 
 const MarketTicker = () => (
   <div className="bg-orange-600 py-1.5 overflow-hidden whitespace-nowrap z-40 sticky top-20 shadow-lg">
@@ -558,9 +559,9 @@ const App = () => {
             <button onClick={() => setShowPWAPrompt(false)} className="text-[10px] font-black uppercase tracking-widest bg-black text-white px-4 py-2 rounded-lg">Dismiss</button>
           </div>
         </div>
-      )}
+       )}
+      <Analytics />
     </div>
   );
 };
-
 export default App;
