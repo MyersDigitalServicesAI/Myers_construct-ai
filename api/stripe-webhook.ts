@@ -22,6 +22,17 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
+// Helper to get raw body buffer from request stream (for Vercel/Node)
+async function getRawBody(req: any): Promise<Buffer> {
+    if (req.rawBody) return req.rawBody; // Some frameworks attach this
+
+    const chunks = [];
+    for await (const chunk of req) {
+        chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+    }
+    return Buffer.concat(chunks);
+}
+
 export default async function handler(req: any, res: any) {
     if (req.method !== 'POST') {
         res.setHeader('Allow', 'POST');
@@ -84,18 +95,21 @@ export default async function handler(req: any, res: any) {
         }
 
         if (uid && planName) {
-            // ... rest of existing user subscription logic ...
-
-            res.status(200).json({ received: true });
-        }
-
-        // Helper to get raw body buffer from request stream (for Vercel/Node)
-        async function getRawBody(req: any): Promise<Buffer> {
-            if (req.rawBody) return req.rawBody; // Some frameworks attach this
-
-            const chunks = [];
-            for await (const chunk of req) {
-                chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+            try {
+                // Update user subscription in Firestore
+                await admin.firestore().collection('users').doc(uid).update({
+                    plan: planName,
+                    subscriptionActive: true,
+                    stripeCustomerId: session.customer,
+                    stripeSessionId: session.id,
+                    subscriptionUpdatedAt: admin.firestore.FieldValue.serverTimestamp()
+                });
+                console.log(`Subscription activated for user ${uid}: ${planName}`);
+            } catch (e) {
+                console.error('User subscription update failed:', e);
             }
-            return Buffer.concat(chunks);
         }
+    }
+
+    res.status(200).json({ received: true });
+}
