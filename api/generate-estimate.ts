@@ -2,7 +2,7 @@ import { GoogleGenAI, SchemaType } from "@google/genai";
 import { z } from "zod";
 
 export const config = {
-    runtime: 'edge',
+    runtime: 'nodejs',
 };
 
 const RequestSchema = z.object({

@@ -1,7 +1,7 @@
 import Stripe from 'stripe';
 
 export const config = {
-    runtime: 'edge',
+    runtime: 'nodejs',
 };
 
 // Initialize Stripe with strict null checks for key
