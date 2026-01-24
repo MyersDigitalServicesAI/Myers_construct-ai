@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI, SchemaType } from "@google/genai";
+import { GoogleGenAI, SchemaType } from "@google/genai";
 import { z } from "zod";
 
 export const config = {
@@ -102,7 +102,7 @@ export default async function handler(req: Request) {
             return new Response(JSON.stringify({ message: "API Key missing" }), { status: 500 });
         }
 
-        const genAI = new GoogleGenerativeAI(apiKey);
+        const genAI = new GoogleGenAI({ apiKey });
         const model = genAI.getGenerativeModel({
             model: 'gemini-2.0-flash-exp',
             systemInstruction: VIRTUAL_FOREMAN_PROMPT,
