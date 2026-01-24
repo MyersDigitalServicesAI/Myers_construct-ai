@@ -2,13 +2,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
-  "functions": {
-    "api/**/*.ts": {
-      "runtime": "nodejs20.x",
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  },
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -45,8 +38,5 @@
         }
       ]
     }
-  ],
-  "env": {
-    "VITE_APP_ENV": "production"
-  }
+  ]
 }
