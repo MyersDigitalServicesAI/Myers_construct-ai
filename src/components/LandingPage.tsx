@@ -61,12 +61,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 border-b ${scrolled ? 'bg-[#050505]/80 backdrop-blur-xl border-white/5 py-4' : 'bg-transparent border-transparent py-6'}`}>
                 <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-700 rounded-xl flex items-center justify-center shadow-[0_0_30px_rgba(249,115,22,0.3)] border border-white/10">
-                            <span className="font-black text-black italic text-2xl">Σ</span>
-                        </div>
+                        <img 
+                            src="/images/logo.png" 
+                            alt="Myers Construct AI" 
+                            className="h-12 w-auto object-contain"
+                        />
                         <div className="hidden md:block">
-                            <span className="block font-black text-lg italic tracking-tighter uppercase leading-none text-white">Myers Construct</span>
-                            <span className="block text-[10px] font-bold text-neutral-500 uppercase tracking-[0.2em]">Artificial Intelligence</span>
+                            <span className="block font-black text-lg italic tracking-tighter uppercase leading-none text-white">Myers Construct AI</span>
+                            <span className="block text-[10px] font-bold text-neutral-500 uppercase tracking-[0.2em]">Voice & Estimate App</span>
                         </div>
                     </div>
 
