@@ -105,8 +105,24 @@ const App = () => {
           localStorage.setItem(`myers_visited_${s.company}`, 'true');
         }
       }
+
+          // Handle Firebase redirect result (fallback for redirect flow)
+    const handleRedirectResult = async () => {
+      try {
+        const { getRedirectResult } = await import('firebase/auth');
+        const { auth } = await import('./services/firebaseConfig');
+        const redirectResult = await getRedirectResult(auth);
+        if (redirectResult?.user) {
+          console.log('Signed in via redirect:', redirectResult.user);
+          // onAuthStateChanged will handle the rest
+        }
+      } catch (error: any) {
+        console.error('Redirect result error:', error);
+      }
+    };
     };
     fetchData();
+        handleRedirectResult();
 
     // mobile PWA prompt logic
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
