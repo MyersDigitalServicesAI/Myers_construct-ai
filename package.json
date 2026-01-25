@@ -28,6 +28,7 @@
     "react-dom": "^19.2.3",
     "serpapi": "^2.2.1",
     "stripe": "^20.1.2",
+    "vercel": "^50.5.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {
