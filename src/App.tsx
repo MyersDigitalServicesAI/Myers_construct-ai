@@ -24,6 +24,7 @@ import { DigitalTwinViewer } from './components/DigitalTwinViewer';
 import { OnboardingTour } from './components/OnboardingTour';
 import { Eye, Smartphone } from 'lucide-react';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 const MarketTicker = () => (
   <div className="bg-orange-600 py-1.5 overflow-hidden whitespace-nowrap z-40 sticky top-20 shadow-lg">
@@ -577,6 +578,7 @@ const App = () => {
         </div>
        )}
       <Analytics />
+      <SpeedInsights />
     </div>
   );
 };
